@@ -132,6 +132,14 @@
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
     },
+    "ADFSSettings": {
+        "Enable": false,
+        "RelyingPartyIdentifier": "",
+        "Id": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "PubKey": ""
+    },
     "LdapSettings": {
         "Enable": false,
         "LdapServer": "",

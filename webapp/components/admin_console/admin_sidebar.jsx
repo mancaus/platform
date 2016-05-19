@@ -395,6 +395,15 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 <AdminSidebarSection
+                                    name='adfs_settings'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.adfs'
+                                            defaultMessage='ADFS Settings'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
                                     name='connections'
                                     title={
                                         <FormattedMessage

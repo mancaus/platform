@@ -172,6 +172,11 @@ test-server: start-docker prepare-enterprise
 	tail -n +2 cweb.out >> cover.out
 	rm -f capi.out cmodel.out cstore.out cutils.out cweb.out
 
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=340s ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./store || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running Enterprise tests
 

@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal.jsx';
+import ManageRolesModal from 'components/admin_console/manage_roles_modal';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
 
@@ -14,6 +15,7 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {getUser} from 'mattermost-redux/actions/users';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {Constants} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -37,21 +39,11 @@ export default class SystemUsersList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.nextPage = this.nextPage.bind(this);
-        this.previousPage = this.previousPage.bind(this);
-        this.search = this.search.bind(this);
-
-        this.doManageTeams = this.doManageTeams.bind(this);
-        this.doManageTeamsDismiss = this.doManageTeamsDismiss.bind(this);
-
-        this.doPasswordReset = this.doPasswordReset.bind(this);
-        this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
-        this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
-
         this.state = {
             page: 0,
 
             showManageTeamsModal: false,
+            showManageRolesModal: false,
             showPasswordModal: false,
             user: null
         };
@@ -63,17 +55,17 @@ export default class SystemUsersList extends React.Component {
         }
     }
 
-    nextPage() {
+    nextPage = () => {
         this.setState({page: this.state.page + 1});
 
         this.props.nextPage(this.state.page + 1);
     }
 
-    previousPage() {
+    previousPage = () => {
         this.setState({page: this.state.page - 1});
     }
 
-    search(term) {
+    search = (term) => {
         this.props.search(term);
 
         if (term !== '') {
@@ -81,35 +73,49 @@ export default class SystemUsersList extends React.Component {
         }
     }
 
-    doManageTeams(user) {
+    doManageTeams = (user) => {
         this.setState({
             showManageTeamsModal: true,
             user
         });
     }
 
-    doManageTeamsDismiss() {
+    doManageRoles = (user) => {
+        this.setState({
+            showManageRolesModal: true,
+            user
+        });
+    }
+
+    doManageTeamsDismiss = () => {
         this.setState({
             showManageTeamsModal: false,
             user: null
         });
     }
 
-    doPasswordReset(user) {
+    doManageRolesDismiss = () => {
+        this.setState({
+            showManageRolesModal: false,
+            user: null
+        });
+    }
+
+    doPasswordReset = (user) => {
         this.setState({
             showPasswordModal: true,
             user
         });
     }
 
-    doPasswordResetDismiss() {
+    doPasswordResetDismiss = () => {
         this.setState({
             showPasswordModal: false,
             user: null
         });
     }
 
-    doPasswordResetSubmit(user) {
+    doPasswordResetSubmit = (user) => {
         getUser(user.id)(dispatch, getState);
 
         this.setState({
@@ -174,6 +180,35 @@ export default class SystemUsersList extends React.Component {
             }
         }
 
+        const userAccessTokensEnabled = global.window.mm_config.EnableUserAccessTokens === 'true';
+        if (userAccessTokensEnabled) {
+            const hasPostAllRole = UserUtils.hasPostAllRole(user.roles);
+            const hasPostAllPublicRole = UserUtils.hasPostAllPublicRole(user.roles);
+            const hasUserAccessTokenRole = UserUtils.hasUserAccessTokenRole(user.roles);
+            const isSystemAdmin = UserUtils.isSystemAdmin(user.roles);
+
+            let messageId = 'admin.user_item.userAccessTokenNo';
+            if (hasUserAccessTokenRole) {
+                if (isSystemAdmin) {
+                    messageId = 'admin.user_item.userAccessTokenAdmin';
+                } else if (hasPostAllRole) {
+                    messageId = 'admin.user_item.userAccessTokenPostAll';
+                } else if (hasPostAllPublicRole) {
+                    messageId = 'admin.user_item.userAccessTokenPostAllPublic';
+                } else {
+                    messageId = 'admin.user_item.userAccessTokenYes';
+                }
+            }
+
+            info.push(', ');
+            info.push(
+                <FormattedHTMLMessage
+                    key='admin.user_item.userAccessToken'
+                    id={messageId}
+                />
+            );
+        }
+
         return info;
     }
 
@@ -236,7 +271,8 @@ export default class SystemUsersList extends React.Component {
                     actions={[SystemUsersDropdown]}
                     actionProps={{
                         doPasswordReset: this.doPasswordReset,
-                        doManageTeams: this.doManageTeams
+                        doManageTeams: this.doManageTeams,
+                        doManageRoles: this.doManageRoles
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
@@ -249,6 +285,11 @@ export default class SystemUsersList extends React.Component {
                     user={this.state.user}
                     show={this.state.showManageTeamsModal}
                     onModalDismissed={this.doManageTeamsDismiss}
+                />
+                <ManageRolesModal
+                    user={this.state.user}
+                    show={this.state.showManageRolesModal}
+                    onModalDismissed={this.doManageRolesDismiss}
                 />
                 <ResetPasswordModal
                     user={this.state.user}

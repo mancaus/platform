@@ -149,6 +149,10 @@ export default class ManageRolesModal extends React.PureComponent {
         if (this.state.hasUserAccessTokenRole) {
             additionalRoles = (
                 <div>
+                    <FormattedHTMLMessage
+                        id='admin.manage_roles.additionalRoles'
+                        defaultMessage='Select additional permissions for the account. <a href="https://about.mattermost.com/default-permissions" target="_blank">Read more about roles and permissions</a>.'
+                    />
                     <input
                         type='checkbox'
                         ref='postall'
